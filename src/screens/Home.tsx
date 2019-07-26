@@ -20,6 +20,10 @@ const useStyles = makeStyles({
   },
 })
 
+interface HomeProps extends RouteComponentProps {
+  leagues: any
+}
+
 function Home(props: RouteComponentProps) {
   const styles = useStyles()
   return (
