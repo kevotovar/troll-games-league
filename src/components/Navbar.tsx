@@ -1,5 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
+import { isLoaded, isEmpty, withFirebase } from 'react-redux-firebase'
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles'
 import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
 import AppBar from '@material-ui/core/AppBar'
@@ -12,8 +13,10 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemText from '@material-ui/core/ListItemText'
 import Divider from '@material-ui/core/Divider'
-import InboxIcon from '@material-ui/icons/Inbox'
-import MailIcon from '@material-ui/icons/Mail'
+import { Link } from '@reach/router'
+
+import HomeIcon from '@material-ui/icons/Home'
+import AccountIcon from '@material-ui/icons/AccountCircle'
 
 import { toggleDrawer } from 'store/reducers/ui/actions'
 
@@ -36,10 +39,12 @@ const iOS =
 
 interface NavbarProps {
   drawer: boolean
-  toggleDrawer: (event: React.MouseEvent<HTMLButtonElement>) => void
+  toggleDrawer: (event: any) => void
+  auth: any
+  firebase: any
 }
 
-function Navbar({ drawer, toggleDrawer }: NavbarProps) {
+function Navbar({ drawer, toggleDrawer, auth, firebase }: NavbarProps) {
   const classes = useStyles()
 
   return (
@@ -67,27 +72,39 @@ function Navbar({ drawer, toggleDrawer }: NavbarProps) {
         disableBackdropTransition={!iOS}
         disableDiscovery={iOS}
       >
-        <List>
-          {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
+        <List onClick={toggleDrawer}>
+          <ListItem button component={Link} to="/">
+            <ListItemIcon>
+              <HomeIcon />
+            </ListItemIcon>
+            <ListItemText primary="Inicio" />
+          </ListItem>
         </List>
-        <Divider />
-        <List>
-          {['All mail', 'Trash', 'Spam'].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
-        </List>
+        {isLoaded(auth) && isEmpty(auth) ? (
+          <>
+            <Divider />
+            <List onClick={toggleDrawer}>
+              <ListItem button component={Link} to="/iniciar-sesion">
+                <ListItemIcon>
+                  <AccountIcon />
+                </ListItemIcon>
+                <ListItemText primary="Iniciar sesion" />
+              </ListItem>
+            </List>
+          </>
+        ) : (
+          <>
+            <Divider />
+            <List onClick={toggleDrawer}>
+              <ListItem button onClick={() => firebase.auth().signOut()}>
+                <ListItemIcon>
+                  <AccountIcon />
+                </ListItemIcon>
+                <ListItemText primary="Iniciar sesion" />
+              </ListItem>
+            </List>
+          </>
+        )}
       </SwipeableDrawer>
     </div>
   )
@@ -95,13 +112,16 @@ function Navbar({ drawer, toggleDrawer }: NavbarProps) {
 
 const mapStateToProps = (state: any) => ({
   drawer: state.ui.get('drawer', false),
+  auth: state.firebase.auth,
 })
 
 const mapDispatchToProps = (dispatch: Function) => ({
   toggleDrawer: () => dispatch(toggleDrawer()),
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(React.memo(Navbar))
+export default withFirebase(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(React.memo(Navbar))
+)

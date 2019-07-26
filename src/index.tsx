@@ -3,11 +3,18 @@ import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
 import { ThemeProvider } from '@material-ui/styles'
 import CssBaseline from '@material-ui/core/CssBaseline'
+import Webfont from 'webfontloader'
 
 import App from './App'
 import * as serviceWorker from './serviceWorker'
 import theme from './theme'
 import store from 'store'
+
+Webfont.load({
+  google: {
+    families: ['Lato:300,400,700'],
+  },
+})
 
 ReactDOM.render(
   <Provider store={store}>
